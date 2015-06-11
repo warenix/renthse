@@ -50,8 +50,28 @@ class Parser591(object):
             self.__db.con.commit()
 
     def process_item(self, item):
+        age = int(item['age'])
+        age = age if age < 1000 else 2015 - age
+        d = {
+            'source_type': SOURCE_TYPE_591,
+            'source_id': item['post_id'],
+            'area': item['area'].strip(),
+            'district': item['district'].strip(),
+            'community': item['community'].strip(),
+            'address': item['address'].strip(),
+            'floor': item['floor'][:-1],
+            'room': item['room'],
+            'hall': item['hall'],
+            'age': age,
+            'use_area': item['use_area_str'][:-1],
+            'build_area': item['build_area_str'][:-1],
+            'price': item['price_str'].replace(',', '')[:-1],
+            'source_url': item['detailUrl'],
+            'refresh_time': item['refreshtime']
+        }
+
         house = House(SOURCE_TYPE_591)
-        house.upsert(self.__db, item)
+        house.upsert(self.__db, d)
         # print_item_rent(item)
         if self.__row_count == 30:
             self.__row_count = 0
@@ -111,5 +131,5 @@ class Item(object):
 
 if __name__ == '__main__':
     parser = Parser591()
-    for i in range(1, 100):
+    for i in range(1, 2):
         parser.fetch_page(i)

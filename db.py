@@ -3,21 +3,29 @@ import sqlite3 as lite
 
 SOURCE_TYPE_591 = 1
 
+REVERSE_GEOCODING_STATUS_PENDING = 0
+REVERSE_GEOCODING_STATUS_FAIL = 1
+REVERSE_GEOCODING_STATUS_SUCCESS = 2
+
 
 class HousingDB(object):
     con = None
 
+    def dict_factory(self, cursor, row):
+        d = {}
+        for idx, col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+        return d
+
     def __init__(self):
-        self.con = lite.connect('test.db')
+        con = lite.connect('test.db')
+        con.row_factory = self.dict_factory
+        self.con = con
 
     def init_db(self):
         with self.con:
             cur = self.con.cursor()
-            cur.execute("CREATE TABLE IF NOT EXISTS Rent ("
-                        "rent_id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                        "source_type INTEGER,"
-                        "source_id INTEGER"
-                        ")")
+
             cur.execute("CREATE TABLE IF NOT EXISTS House("
                         "house_id INTEGER PRIMARY KEY AUTOINCREMENT,"
                         "source_type INTEGER,"
@@ -34,7 +42,10 @@ class HousingDB(object):
                         "build_area INTEGER,"
                         "price INTEGER,"
                         "source_url TEXT,"
-                        "refresh_time INTEGER"
+                        "refresh_time INTEGER,"
+                        "lat Decimal(9,6),"
+                        "lng Decimal(9,6),"
+                        "reverse_geocoding_status INTEGER DEFAULT 0"
                         ")")
             cur.execute('''
             CREATE UNIQUE INDEX IF NOT EXISTS idx_house_1 ON House (
@@ -62,7 +73,7 @@ class House(object):
     def is_loaded(self):
         return self.__row is not None
 
-    def upsert(self, db, item):
+    def upsert(self, db, d):
         cur = db.con.cursor()
         sql = u"""
         INSERT OR REPLACE INTO House (
@@ -73,7 +84,8 @@ class House(object):
         use_area, build_area,
         price,
         source_url,
-        refresh_time
+        refresh_time,
+        lat,lng
         ) VALUES (
         :source_type, :source_id,
         :area, :district,
@@ -82,26 +94,11 @@ class House(object):
         :use_area, :build_area,
         :price,
         :source_url,
-        :refresh_time)
+        :refresh_time,
+        (SELECT lat FROM HOUSE WHERE source_type=:source_type and source_id=:source_id),
+        (SELECT lng FROM HOUSE WHERE source_type=:source_type and source_id=:source_id)
+        )
         """
-        d = {
-            'source_type': self.__source_type,
-            'source_id': item['post_id'],
-            'area': item['area'].strip(),
-            'district': item['district'].strip(),
-            'community': item['community'].strip(),
-            'address': item['address'].strip(),
-            'floor': item['floor'][:-1],
-            'room': item['room'],
-            'hall': item['hall'],
-            'age': item['age'],
-            'use_area': item['use_area_str'][:-1],
-            'build_area': item['build_area_str'][:-1],
-            'price': item['price_str'].replace(',', '')[:-1],
-            'source_url': item['detailUrl'],
-            'refresh_time': item['refreshtime']
-        }
-
         cur.execute(sql, d)
         print cur.lastrowid
 
