@@ -131,5 +131,5 @@ class Item(object):
 
 if __name__ == '__main__':
     parser = Parser591()
-    for i in range(1, 2):
+    for i in range(1, 100):
         parser.fetch_page(i)
