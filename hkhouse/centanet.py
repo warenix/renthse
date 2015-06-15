@@ -53,7 +53,7 @@ class ParserCentanet(object):
         session_params = []
         session_params.append('CultureInfo=TraditionalChinese')
         session_params.append('SessionID=' + (self.__session_id if self.__session_id is not None else ''))
-        session_params.append('SearchPostList=' + search_post_list)
+        session_params.append('SearchPostList=' + search_post_list if search_post_list is not None else '')
         session_params.append('ASP.NET_SessionId=' + '2tz1uuyqsmmb1ezm0mn2femi')
         self.__cookie = '; '.join(session_params)
         html = response.read()
@@ -202,5 +202,5 @@ class CentanetParser(BaseParser):
 
 if __name__ == '__main__':
     parser = ParserCentanet()
-    for i in range(1, 8):
+    for i in range(30, 40):
         parser.fetch_page(i)
