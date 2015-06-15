@@ -27,7 +27,7 @@ class ParserCentanet(object):
         f = {'mktid': 'HK',
              'minprice': '',
              'maxprice': '', 'minarea': '', 'maxarea': '', 'areatype': 'N',
-             'posttype': 'S', 'src': 'F', 'sortcolumn': '', 'sorttype': '', 'limit': '300', 'currentpage': page_no}
+             'posttype': 'R', 'src': 'F', 'sortcolumn': '', 'sorttype': '', 'limit': '300', 'currentpage': page_no}
         url = url + urllib.urlencode(f)
         f = {
             'url': url
@@ -40,18 +40,12 @@ class ParserCentanet(object):
                    'DNT': '1',
                    'Referer': 'http://hk.centanet.com/findproperty/zh-HK/Home/SearchResult/?mktid=HK&minprice=&maxprice=&minarea=&maxarea=&areatype=N&posttype=S&src=F',
                    'X-Requested-With': 'XMLHttpRequest'}
-        print headers
+        print 'fetching', page_no
 
         request = urllib2.Request(url, headers=headers)
         response = urllib2.urlopen(request)
         headers = response.info()
-        for header in headers:
-            print header, headers[header]
-
-        if 'set-cookie' in headers:
-            print 'old', self.__cookie
         set_cookie = headers['set-cookie']
-
         search_post_list = self.extract_cookie(set_cookie, 'SearchPostList')
         if self.__session_id is None:
             self.__session_id = self.extract_cookie(set_cookie, 'SessionID')
@@ -62,9 +56,6 @@ class ParserCentanet(object):
         session_params.append('SearchPostList=' + search_post_list)
         session_params.append('ASP.NET_SessionId=' + '2tz1uuyqsmmb1ezm0mn2femi')
         self.__cookie = '; '.join(session_params)
-        print 'new', self.__cookie
-        print
-        print
         html = response.read()
 
         j = json.loads(html)
@@ -74,8 +65,6 @@ class ParserCentanet(object):
         parser.start_over()
         parser.feed(j['post'])
 
-        print len(parser.item_list), 'found'
-        print parser.item_list[-1]
         row_count = 0
         for item in parser.item_list:
             house = House(SOURCE_TYPE_CENTANET)
@@ -119,7 +108,9 @@ class CentanetParser(BaseParser):
 
     __item = None
 
-    item_list = []
+    item_list = None
+
+    __error = False
 
     def start_over(self):
         self.item_list = []
@@ -128,7 +119,10 @@ class CentanetParser(BaseParser):
     def handle_starttag(self, tag, attrs):
         if self.hasAttr('postid', attrs):
             if self.__item is not None:
-                self.item_list.append(self.__item)
+                if not self.__error:
+                    self.item_list.append(self.__item)
+                else:
+                    self.__error = False
 
             # fill in default values for item
             self.__item = {
@@ -138,7 +132,7 @@ class CentanetParser(BaseParser):
                 'floor': None,
                 'hall': None,
                 'refresh_time': time.time(),
-                'source_url': None,
+                'source_url': '',
                 'lat': None,
                 'lng': None,
             }
@@ -152,7 +146,7 @@ class CentanetParser(BaseParser):
             if tag == 'span':
                 s = self.getFromAttrs('title', attrs)
                 s = s[0:s.rfind(' ')]
-                self.__item['address'] = s
+                self.__item['address'] = s.strip()
                 self.__state = self.STATE_LOOK_FOR_USE_AREA
         elif self.__state == self.STATE_LOOK_FOR_USE_AREA:
             if tag == 'span':
@@ -181,24 +175,29 @@ class CentanetParser(BaseParser):
         if data == "":
             return
 
-        if self.__state == self.STATE_FOUND_COMMUNITY:
-            self.__item['community'] = data.strip()
-            self.__state = self.STATE_LOOK_FOR_ADDRESS
-        elif self.__state == self.STATE_FOUND_USE_AREA:
-            self.__item['use_area'] = "".join(re.findall(r'\d+', data))
-            self.__state = self.STATE_LOOK_FOR_BUILD_AREA
-        elif self.__state == self.STATE_FOUND_BUILD_AREA:
-            self.__item['build_area'] = "".join(re.findall(r'\d+', data))
-            self.__state = self.STATE_LOOK_FOR_ROOM
-        elif self.__state == self.STATE_FOUND_ROOM:
-            self.__item['room'] = re.findall(r'\d+', data)[0]
-            self.__state = self.STATE_LOOK_FOR_AGE
-        elif self.__state == self.STATE_FOUND_AGE:
-            self.__item['age'] = re.findall(r'\d+', data)[0]
-            self.__state = self.STATE_LOOK_FOR_PRICE
-        elif self.__state == self.STATE_FOUND_PRICE:
-            self.__item['price'] = "".join(re.findall(r'\d+', data))
-            self.__state = self.STATE_LOOK_FOR_PRICE
+        try:
+            if self.__state == self.STATE_FOUND_COMMUNITY:
+                self.__item['community'] = data.strip()
+                self.__state = self.STATE_LOOK_FOR_ADDRESS
+            elif self.__state == self.STATE_FOUND_USE_AREA:
+                self.__item['use_area'] = "".join(re.findall(r'\d+', data))
+                self.__state = self.STATE_LOOK_FOR_BUILD_AREA
+            elif self.__state == self.STATE_FOUND_BUILD_AREA:
+                self.__item['build_area'] = "".join(re.findall(r'\d+', data))
+                self.__state = self.STATE_LOOK_FOR_ROOM
+            elif self.__state == self.STATE_FOUND_ROOM:
+                self.__item['room'] = re.findall(r'\d+', data)[0]
+                self.__state = self.STATE_LOOK_FOR_AGE
+            elif self.__state == self.STATE_FOUND_AGE:
+                self.__item['age'] = re.findall(r'\d+', data)[0]
+                self.__state = self.STATE_LOOK_FOR_PRICE
+            elif self.__state == self.STATE_FOUND_PRICE:
+                self.__item['price'] = "".join(re.findall(r'\d+', data))
+                self.__state = self.STATE_LOOK_FOR_PRICE
+        except:
+            self.__error = True
+            self.__state = self.STATE_LOOK_FOR_START
+            print 'error parsing', self.__item['source_id']
 
 
 if __name__ == '__main__':
