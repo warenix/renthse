@@ -2,7 +2,7 @@ import json
 import urllib
 import urllib2
 from hkhouse.db import HousingDB, SOURCE_TYPE_591, REVERSE_GEOCODING_STATUS_SUCCESS, REVERSE_GEOCODING_STATUS_FAIL, \
-    REVERSE_GEOCODING_STATUS_PENDING
+    REVERSE_GEOCODING_STATUS_PENDING, SOURCE_TYPE_CENTANET
 from hkhouse.opencage import OpenCage
 
 __author__ = 'warenix'
@@ -10,17 +10,19 @@ __author__ = 'warenix'
 
 class DBWorker(object):
     __db = None
+    __source_type = None
 
-    def __init__(self):
+    def __init__(self, source_type):
         self.__db = HousingDB()
         self.__db.init_db()
+        self.__source_type = source_type
 
     def run(self):
         cur = self.__db.con.cursor()
         success = True
         while success:
-            sql = 'select * from House where source_type={source_type} and reverse_geocoding_status={reverse_geocoding_status} limit 1'.format(
-                source_type=SOURCE_TYPE_591,
+            sql = 'select * from House where reverse_geocoding_status={reverse_geocoding_status} limit 1'.format(
+                source_type=self.get_source_type(),
                 reverse_geocoding_status=REVERSE_GEOCODING_STATUS_PENDING
             )
             cur.execute(sql)
@@ -38,6 +40,9 @@ class DBWorker(object):
     def commit_cursor(self):
         self.__db.con.commit()
 
+    def get_source_type(self):
+        return self.__source_type
+
 
 class ReverseGeocodingWorker(DBWorker):
     __reverse_geocoding_api = OpenCage()
@@ -54,7 +59,7 @@ class ReverseGeocodingWorker(DBWorker):
              lat=:lat, lng=:lng
             WHERE source_type = :source_type and source_id = :source_id"""
             d = {
-                'source_type': SOURCE_TYPE_591,
+                'source_type': self.get_source_type(),
                 'source_id': item['source_id'],
                 'lat': lat,
                 'lng': lng,
@@ -66,7 +71,7 @@ class ReverseGeocodingWorker(DBWorker):
              SET reverse_geocoding_status=:reverse_geocoding_status
             WHERE source_type = :source_type and source_id = :source_id"""
             d = {
-                'source_type': SOURCE_TYPE_591,
+                'source_type': self.get_source_type(),
                 'source_id': item['source_id'],
                 'reverse_geocoding_status': REVERSE_GEOCODING_STATUS_FAIL
             }
@@ -77,5 +82,5 @@ class ReverseGeocodingWorker(DBWorker):
         return remaining > 0
 
 
-worker = ReverseGeocodingWorker()
+worker = ReverseGeocodingWorker(SOURCE_TYPE_CENTANET)
 worker.run()
