@@ -1,9 +1,10 @@
 import json
 import urllib
 import urllib2
-import re
 import time
-from hkhouse.db import HousingDB, House, SOURCE_TYPE_CENTANET
+
+import re
+from hkhouse.core.db import HousingDB, House, SOURCE_TYPE_CENTANET
 from hkhouse.htmlparser import BaseParser
 
 __author__ = 'warenix'

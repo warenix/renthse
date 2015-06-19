@@ -1,9 +1,8 @@
-import json
 import urllib
-import urllib2
-from hkhouse.db import HousingDB, SOURCE_TYPE_591, REVERSE_GEOCODING_STATUS_SUCCESS, REVERSE_GEOCODING_STATUS_FAIL, \
+
+from hkhouse.core.db import HousingDB, REVERSE_GEOCODING_STATUS_SUCCESS, REVERSE_GEOCODING_STATUS_FAIL, \
     REVERSE_GEOCODING_STATUS_PENDING, SOURCE_TYPE_CENTANET
-from hkhouse.opencage import OpenCage
+from hkhouse.extapi.opencage import OpenCage
 
 __author__ = 'warenix'
 

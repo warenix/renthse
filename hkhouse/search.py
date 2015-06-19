@@ -1,4 +1,4 @@
-from hkhouse.db import SOURCE_TYPE_591, HousingDB
+from hkhouse.core.db import HousingDB
 
 __author__ = 'warenix'
 
