@@ -18,20 +18,31 @@ class DBWorker(object):
         self.__source_type = source_type
 
     def run(self):
-        cur = self.__db.con.cursor()
-        success = True
-        while success:
-            sql = 'select * from House where reverse_geocoding_status={reverse_geocoding_status} limit 1'.format(
-                source_type=self.get_source_type(),
-                reverse_geocoding_status=REVERSE_GEOCODING_STATUS_PENDING
-            )
-            cur.execute(sql)
-            row = cur.fetchone()
-            if row is None:
-                break
-            success = self.process_item(row)
+        sql = self.get_process_item_sql()
+
+        if sql is not None:
+            success = True
+
+            cur = self.__db.con.cursor()
+            while success:
+                cur.execute(sql)
+                row = cur.fetchone()
+                if row is None:
+                    break
+                success = self.process_item(row)
+
+    def get_process_item_sql(self):
+        ''' select one item form db. the item will be passed to process_item()
+        :param item:
+        :return: None if no item is selected
+        '''
+        return None
 
     def process_item(self, item):
+        ''' process an item selected from db.
+        :param item: item selected from get_process_item_sql()
+        :return: True if there's more item to be processed.
+        '''
         return False
 
     def get_cursor(self):
@@ -46,6 +57,13 @@ class DBWorker(object):
 
 class ReverseGeocodingWorker(DBWorker):
     __reverse_geocoding_api = OpenCage()
+
+    def get_process_item_sql(self):
+        sql = 'select * from House where reverse_geocoding_status={reverse_geocoding_status} limit 1'.format(
+            source_type=self.get_source_type(),
+            reverse_geocoding_status=REVERSE_GEOCODING_STATUS_PENDING
+        )
+        return sql
 
     def process_item(self, item):
         q = u"{address}".format(address=item['address'])
@@ -82,5 +100,6 @@ class ReverseGeocodingWorker(DBWorker):
         return remaining > 0
 
 
-worker = ReverseGeocodingWorker(SOURCE_TYPE_CENTANET)
-worker.run()
+if __name__ == '__main__':
+    worker = ReverseGeocodingWorker(SOURCE_TYPE_CENTANET)
+    worker.run()
