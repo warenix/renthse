@@ -1,8 +1,8 @@
 import urllib
 
-from hkhouse.core.db import HousingDB, REVERSE_GEOCODING_STATUS_SUCCESS, REVERSE_GEOCODING_STATUS_FAIL, \
+from renthse.core.db import HousingDB, REVERSE_GEOCODING_STATUS_SUCCESS, REVERSE_GEOCODING_STATUS_FAIL, \
     REVERSE_GEOCODING_STATUS_PENDING, SOURCE_TYPE_CENTANET
-from hkhouse.extapi.opencage import OpenCage
+from renthse.extapi.opencage import OpenCage
 
 __author__ = 'warenix'
 

@@ -1,7 +1,7 @@
 import urllib2
 import json
 
-from hkhouse.core.db import HousingDB, House, SOURCE_TYPE_591
+from renthse.core.db import HousingDB, House, SOURCE_TYPE_591
 
 __author__ = 'warenix'
 

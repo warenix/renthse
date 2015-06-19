@@ -1,4 +1,4 @@
-from hkhouse.core.db import HousingDB
+from renthse.core.db import HousingDB
 
 __author__ = 'warenix'
 

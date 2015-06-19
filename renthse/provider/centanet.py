@@ -4,8 +4,8 @@ import urllib2
 import time
 
 import re
-from hkhouse.core.db import HousingDB, House, SOURCE_TYPE_CENTANET
-from hkhouse.htmlparser import BaseParser
+from renthse.core.db import HousingDB, House, SOURCE_TYPE_CENTANET
+from renthse.core.htmlparser import BaseParser
 
 __author__ = 'warenix'
 
