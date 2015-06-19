@@ -5,9 +5,11 @@ __author__ = 'warenix'
 
 
 class OpenCage(object):
-    __key = '38ed6d20475f7bc09c88b52458d83d3c'
+    __key = None
 
     def reverse_geocoding(self, q):
+        if self.__key is None:
+            raise ValueError('No api key. Please obtain one at https://developer.opencagedata.com/')
         url = '''https://api.opencagedata.com/geocode/v1/json?q={q}&key={key}&pretty=1'''.format(
             q=q,
             key=self.__key)
