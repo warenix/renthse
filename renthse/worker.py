@@ -58,7 +58,7 @@ class ReverseGeocodingWorker(DBWorker):
     __reverse_geocoding_api = OpenCage()
 
     def get_process_item_sql(self):
-        sql = 'select * from House where reverse_geocoding_status={reverse_geocoding_status} limit 1'.format(
+        sql = 'select * from House where source_type = {source_type} and reverse_geocoding_status={reverse_geocoding_status} limit 1'.format(
             source_type=self.get_source_type(),
             reverse_geocoding_status=REVERSE_GEOCODING_STATUS_PENDING
         )
@@ -67,7 +67,7 @@ class ReverseGeocodingWorker(DBWorker):
     def process_item(self, item):
         q = u"{address}".format(address=item['address'])
         lat, lng, remaining = self.__reverse_geocoding_api.reverse_geocoding(urllib.quote(q.encode('utf-8')))
-        print q, lat, lng, remaining
+        print q, lat, lng, remaining, item['source_id']
 
         sql = None
         if lat is not None and lng is not None:
