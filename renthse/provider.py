@@ -1,5 +1,8 @@
-import getopt
+import os
 import sys
+sys.path.insert(1,os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+import getopt
 from renthse.provider.centanet import ParserCentanet
 from renthse.provider.p591 import Parser591
 

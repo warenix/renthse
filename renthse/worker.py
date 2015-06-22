@@ -1,3 +1,7 @@
+import os
+import sys
+sys.path.insert(1,os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
 import urllib
 
 from renthse.core.db import HousingDB, REVERSE_GEOCODING_STATUS_SUCCESS, REVERSE_GEOCODING_STATUS_FAIL, \
