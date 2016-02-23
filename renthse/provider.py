@@ -1,10 +1,13 @@
-import os
 import sys
-sys.path.insert(1,os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+import os
+
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 import getopt
 from renthse.provider.centanet import ParserCentanet
 from renthse.provider.p591 import Parser591
+from renthse.provider.hse28 import ParserHse28
 
 __author__ = 'warenix'
 
@@ -35,6 +38,9 @@ def main(argv):
             parser = ParserCentanet()
             for i in range(1, 300):
                 parser.fetch_page(i)
+        elif provider == 'hse28':
+            parser = ParserHse28()
+            parser.fetch_page()
 
 
 if __name__ == '__main__':
