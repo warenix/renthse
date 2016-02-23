@@ -88,6 +88,8 @@ class ParserHse28(object):
             print item['rentprice']
             print item['catname']
             print item['first_sent']
+
+            source_id = item['ad_id']
             room = None
             use_area = None
             rent = None
@@ -104,7 +106,7 @@ class ParserHse28(object):
 
             d = {
                 'source_type': SOURCE_TYPE_HSE28,
-                'source_id': item['ad_id'],
+                'source_id': source_id,
                 'area': item['area'].strip(),
                 'district': None,
                 'community': item['catfathername'].strip(),
@@ -116,7 +118,7 @@ class ParserHse28(object):
                 'use_area': use_area,
                 'build_area': None,
                 'price': rent,
-                'source_url': None,
+                'source_url': "http://www.28hse.com/rent-property-%s.html" % (source_id),
                 'refresh_time': time.time(),
             }
 
