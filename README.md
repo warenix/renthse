@@ -10,7 +10,8 @@ In table *House*, there's  a column *source_type INTEGER* to identify which the 
 
 Source type
  * 1: [591.com](http://rent.591.com.hk/)
- * 2: [Centamap](http://hk.centanet.com/findproperty/zh-HK/Home/SearchResult/)
+ * 2: [hk.centanet.com](http://hk.centanet.com/findproperty/zh-HK/Home/SearchResult/)
+ * 3: [28hse.com](http://www.28hse.com)
  
 # Requirement
 1. Have python 2.7 installed (not tested on python 3) to run cralwing scripts
@@ -20,21 +21,22 @@ Source type
 1. git clone git@github.com:warenix/renthse.git
 
 
-### 591 provider
+### Fetching from Provider
+Usage: _python provider.py -p <provider>_
 
-Command: _python renthse/provider.py -p 591_
+Example: _python renthse/provider.py -p 591_
 
 Output: all entries are inserted/ updated into a sqlite3 database, test.db
 
-### Centamap provider
-Command: _python renthse/provider.py -p centanet_
-
-Output: all entries are inserted/updated into a sqlite3 database, test.db
+Available providers:
+ * 591
+ * centanet
+ * hse28
 
 ## Reverse geocoding address
 1. Get a free api key at [opencagedata](https://developer.opencagedata.com/)
 2. Modify /renthse/extapi/OpenCage.py
-3. Fin and replace line \_\_key = None with \_\_key = '< MY KEY >'
+3. Find and replace line \_\_key = None with \_\_key = '< MY KEY >'
 
 Command: _python renthse/worker.py_
 
